@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Datos cacheados (regenerables con `python -m data.loader`)
+backend/data/raw/*.csv
+
+# Node / frontend
+node_modules/
+dist/
+.vite/
+
+# Varios
+.DS_Store
+*.log

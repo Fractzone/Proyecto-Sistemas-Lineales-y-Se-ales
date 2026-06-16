@@ -1,0 +1,15 @@
+# SPECTRA backend — dependencias
+# Regla del proyecto: en produccion solo se usa numpy.fft como primitiva externa de DSP.
+# scipy aparece SOLO como oraculo de validacion en los tests.
+
+numpy>=2.1
+pandas>=2.2
+yfinance>=0.2.40
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.8
+
+# --- solo para tests (oraculo de validacion) ---
+pytest>=8.2
+scipy>=1.14
+httpx>=0.27

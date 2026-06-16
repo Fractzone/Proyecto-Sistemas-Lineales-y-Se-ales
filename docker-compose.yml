@@ -1,0 +1,19 @@
+# SPECTRA — backend (FastAPI) + frontend (nginx)
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    # Persistir el caché de datos descargado entre reinicios.
+    volumes:
+      - spectra_data:/app/data/raw
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  spectra_data:
