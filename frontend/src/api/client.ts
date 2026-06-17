@@ -4,12 +4,14 @@ import type {
   AssetInfo,
   CompareResponse,
   EpochInfo,
+  MarketInfo,
 } from "../types";
 
 export interface CompareRequest {
   mode: string;
   asset?: string;
   epoch?: string;
+  market?: string;
   N: number;
   window: string;
   eps_low: number;
@@ -40,6 +42,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   getAssets: () => request<AssetInfo[]>("/assets"),
+  getMarkets: () => request<MarketInfo[]>("/markets"),
   getEpochs: () => request<EpochInfo[]>("/epochs"),
   analyze: (req: AnalyzeRequest) =>
     request<AnalyzeResponse>("/analyze", { method: "POST", body: JSON.stringify(req) }),

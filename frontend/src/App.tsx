@@ -5,17 +5,19 @@ import Panel2Spectral from "./components/Panel2Spectral";
 import Panel3Coherence from "./components/Panel3Coherence";
 import Panel4Summary from "./components/Panel4Summary";
 import ComparisonView from "./components/ComparisonView";
+import WorldGlobe from "./components/WorldGlobe";
 import LoadingOverlay from "./components/LoadingOverlay";
 import ErrorBanner from "./components/ErrorBanner";
 import { api } from "./api/client";
 import { useAnalysis } from "./hooks/useAnalysis";
-import type { AssetInfo, CompareMode, EpochInfo } from "./types";
+import type { CompareMode, EpochInfo, MarketInfo } from "./types";
 
 export default function App() {
-  const [assets, setAssets] = useState<AssetInfo[]>([]);
+  const [markets, setMarkets] = useState<MarketInfo[]>([]);
   const [epochs, setEpochs] = useState<EpochInfo[]>([]);
   const [metaError, setMetaError] = useState<string | null>(null);
 
+  const [market, setMarket] = useState("US");
   const [asset, setAsset] = useState("AAL");
   const [epoch, setEpoch] = useState("durante");
   const [N, setN] = useState(1024);
@@ -25,13 +27,26 @@ export default function App() {
   const [compareMode, setCompareMode] = useState<CompareMode | null>(null);
 
   useEffect(() => {
-    Promise.all([api.getAssets(), api.getEpochs()])
-      .then(([a, e]) => {
-        setAssets(a);
+    Promise.all([api.getMarkets(), api.getEpochs()])
+      .then(([m, e]) => {
+        setMarkets(m);
         setEpochs(e);
       })
       .catch((err: Error) => setMetaError(err.message));
   }, []);
+
+  const currentMarket = markets.find((m) => m.code === market);
+  const assets = currentMarket?.assets ?? [];
+
+  // Al cambiar de país (clic en el globo): cargar sus activos y seleccionar la
+  // primera acción de contraste (narrativa más interesante, como AAL en EE.UU.).
+  function selectMarket(code: string) {
+    const m = markets.find((mk) => mk.code === code);
+    if (!m) return;
+    setMarket(code);
+    const contrast = m.assets.find((a) => a.kind === "contrast") ?? m.assets[0];
+    if (contrast) setAsset(contrast.ticker);
+  }
 
   const params = useMemo(
     () => ({ asset, epoch, N, window: windowName, eps_low: epsLow, eps_high: epsHigh }),
@@ -54,6 +69,7 @@ export default function App() {
         </div>
         {activeAsset && (
           <div className="context-chip">
+            {currentMarket && <strong>{currentMarket.name}</strong>}{" "}
             <strong>{activeAsset.ticker}</strong> · {activeAsset.role}
           </div>
         )}
@@ -85,6 +101,7 @@ export default function App() {
           mode={compareMode}
           asset={asset}
           epoch={epoch}
+          market={market}
           N={N}
           window={windowName}
           epsLow={epsLow}
@@ -99,6 +116,7 @@ export default function App() {
               <Panel1Time data={data} />
               <Panel2Spectral data={data} epsLow={epsLow} epsHigh={epsHigh} />
               <Panel3Coherence data={data} />
+              <WorldGlobe markets={markets} selected={market} onSelect={selectMarket} />
               <Panel4Summary data={data} />
             </div>
           )}

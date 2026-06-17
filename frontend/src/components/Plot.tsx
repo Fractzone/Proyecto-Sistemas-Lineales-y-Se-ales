@@ -8,15 +8,17 @@ interface PlotProps {
   data: unknown[];
   layout?: Record<string, unknown>;
   height?: number;
+  onClick?: (e: unknown) => void;
 }
 
-export default function Plot({ data, layout = {}, height = 260 }: PlotProps) {
+export default function Plot({ data, layout = {}, height = 260, onClick }: PlotProps) {
   return (
     <RawPlot
       data={data}
       layout={baseLayout({ height, ...layout })}
       config={plotConfig}
       useResizeHandler
+      onClick={onClick}
       style={{ width: "100%", height }}
     />
   );

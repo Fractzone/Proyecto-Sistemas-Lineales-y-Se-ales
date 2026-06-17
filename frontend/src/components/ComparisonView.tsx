@@ -8,6 +8,7 @@ interface Props {
   mode: CompareMode;
   asset: string;
   epoch: string;
+  market: string;
   N: number;
   window: string;
   epsLow: number;
@@ -26,6 +27,7 @@ export default function ComparisonView(p: Props) {
         mode: p.mode,
         asset: p.mode === "asset_epochs" ? p.asset : undefined,
         epoch: p.mode === "epoch_assets" ? p.epoch : undefined,
+        market: p.mode === "epoch_assets" ? p.market : undefined,
         N: p.N,
         window: p.window,
         eps_low: p.epsLow,
@@ -36,7 +38,7 @@ export default function ComparisonView(p: Props) {
     return () => {
       cancelled = true;
     };
-  }, [p.mode, p.asset, p.epoch, p.N, p.window, p.epsLow, p.epsHigh]);
+  }, [p.mode, p.asset, p.epoch, p.market, p.N, p.window, p.epsLow, p.epsHigh]);
 
   if (error) return <div className="error-banner">{error}</div>;
   if (!data) return <div className="loading-inline">Calculando comparación…</div>;
@@ -64,7 +66,7 @@ export default function ComparisonView(p: Props) {
           />
         </section>
         <section className="panel">
-          <h2>Coherencia con SPY (f_dom)</h2>
+          <h2>Coherencia con el mercado (f_dom)</h2>
           <Plot
             height={220}
             data={[

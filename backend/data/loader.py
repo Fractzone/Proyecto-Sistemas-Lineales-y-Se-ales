@@ -9,6 +9,7 @@ con instrucciones de reintento.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import numpy as np
@@ -18,9 +19,24 @@ from . import config
 
 RAW_DIR = Path(__file__).resolve().parent / "raw"
 
+# Mínimo de muestras por época para que el análisis (y especialmente la coherencia
+# de Welch, que necesita varios segmentos) tenga sentido.
+MIN_SAMPLES_PER_EPOCH: int = 200
+
+
+def _safe_name(ticker: str) -> str:
+    """Nombre de archivo seguro para un ticker.
+
+    Los tickers internacionales incluyen caracteres como ``^`` (índices) o ``.``
+    (sufijo de bolsa, p. ej. ``2330.TW``). Se reemplaza cualquier carácter no
+    alfanumérico por ``_``. Los tickers de EE.UU. (``SPY``/``AAL``/``NFLX``) son
+    alfanuméricos, por lo que su caché existente no cambia.
+    """
+    return re.sub(r"[^0-9A-Za-z]", "_", ticker)
+
 
 def _csv_path(ticker: str) -> Path:
-    return RAW_DIR / f"{ticker}.csv"
+    return RAW_DIR / f"{_safe_name(ticker)}.csv"
 
 
 def download_all(force: bool = False) -> dict[str, Path]:
@@ -127,9 +143,39 @@ def get_returns(ticker: str, epoch: str) -> tuple[pd.DatetimeIndex, np.ndarray]:
     return dates, returns
 
 
+def validate_coverage() -> dict[str, dict[str, int]]:
+    """Verifica que cada (ticker, época) supera ``MIN_SAMPLES_PER_EPOCH``.
+
+    Devuelve un dict ticker -> {época: nº de muestras}. Lanza ``RuntimeError`` si
+    algún par queda por debajo del mínimo (hueco de datos que invalidaría el
+    análisis).
+    """
+    report: dict[str, dict[str, int]] = {}
+    problems: list[str] = []
+    for ticker in config.asset_keys():
+        df = load_series(ticker)
+        counts: dict[str, int] = {}
+        for epoch in config.epoch_keys():
+            n = len(segment(df, epoch))
+            counts[epoch] = n
+            if n < MIN_SAMPLES_PER_EPOCH:
+                problems.append(f"{ticker}/{epoch}: {n} < {MIN_SAMPLES_PER_EPOCH}")
+        report[ticker] = counts
+    if problems:
+        raise RuntimeError(
+            "Cobertura insuficiente de datos en: " + "; ".join(problems)
+        )
+    return report
+
+
 if __name__ == "__main__":  # pragma: no cover - utilidad de línea de comandos
     print("Descargando datos de Yahoo Finance (una sola vez)...")
     for ticker, path in download_all().items():
         df = pd.read_csv(path)
         print(f"  {ticker}: {len(df)} filas -> {path}")
+    print("Validando cobertura por época...")
+    report = validate_coverage()
+    for ticker, counts in report.items():
+        c = " ".join(f"{e}={n}" for e, n in counts.items())
+        print(f"  {ticker}: {c}")
     print("Listo.")

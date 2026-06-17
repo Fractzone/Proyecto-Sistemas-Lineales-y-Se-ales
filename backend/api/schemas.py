@@ -9,6 +9,17 @@ class AssetInfo(BaseModel):
     ticker: str
     name: str
     role: str
+    kind: str = "contrast"
+    market: str = ""
+
+
+class MarketInfo(BaseModel):
+    code: str
+    name: str
+    lat: float
+    lon: float
+    benchmark: str
+    assets: list[AssetInfo]
 
 
 class EpochInfo(BaseModel):
@@ -67,6 +78,7 @@ class Summary(BaseModel):
     coherence_at_dom: float
     n_samples: int
     nperseg: int
+    benchmark: str
     interpretation: str
 
 
@@ -84,6 +96,7 @@ class CompareRequest(BaseModel):
     mode: str = Field(..., description="'asset_epochs' o 'epoch_assets'")
     asset: str | None = None
     epoch: str | None = None
+    market: str | None = Field(None, description="Requerido para mode='epoch_assets'")
     N: int = Field(1024, ge=64, le=4096)
     window: str = "hanning"
     eps_low: float = 0.45

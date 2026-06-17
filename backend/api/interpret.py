@@ -37,6 +37,7 @@ def _confidence_word(conf: float) -> str:
 def build_interpretation(
     asset: str,
     epoch: str,
+    benchmark: str,
     regime: str,
     period_days: float,
     confidence: float,
@@ -56,15 +57,16 @@ def build_interpretation(
         if coherence_at_dom >= 0.3
         else f"baja ({coherence_at_dom:.2f})"
     )
+    mkt = f"mercado ({benchmark})"
     coh_phrase = (
-        "fuertemente sincronizado con el mercado (SPY)"
+        f"fuertemente sincronizado con el {mkt}"
         if coherence_at_dom >= 0.6
-        else "parcialmente acoplado al mercado (SPY)"
+        else f"parcialmente acoplado al {mkt}"
         if coherence_at_dom >= 0.3
-        else "desacoplado del mercado (SPY)"
+        else f"desacoplado del {mkt}"
     )
 
-    if asset == config.BENCHMARK:
+    if asset == benchmark:
         coh_sentence = (
             "Como es el activo de referencia, la coherencia consigo mismo no se reporta."
         )

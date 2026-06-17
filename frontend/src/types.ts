@@ -4,6 +4,17 @@ export interface AssetInfo {
   ticker: string;
   name: string;
   role: string;
+  kind: string; // "general" | "contrast"
+  market: string;
+}
+
+export interface MarketInfo {
+  code: string;
+  name: string;
+  lat: number;
+  lon: number;
+  benchmark: string;
+  assets: AssetInfo[];
 }
 
 export interface EpochInfo {
@@ -52,6 +63,7 @@ export interface Summary {
   coherence_at_dom: number;
   n_samples: number;
   nperseg: number;
+  benchmark: string;
   interpretation: string;
 }
 

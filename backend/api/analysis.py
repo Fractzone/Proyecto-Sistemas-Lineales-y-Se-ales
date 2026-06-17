@@ -27,10 +27,12 @@ from . import interpret, schemas
 _CACHE: dict[tuple, schemas.AnalyzeResponse] = {}
 
 
-def _aligned_returns(asset: str, epoch: str) -> tuple[np.ndarray, np.ndarray]:
-    """Retornos de ``asset`` y del benchmark (SPY) alineados por fecha común."""
+def _aligned_returns(
+    asset: str, epoch: str, benchmark: str
+) -> tuple[np.ndarray, np.ndarray]:
+    """Retornos de ``asset`` y del ``benchmark`` alineados por fecha común."""
     da, ra = loader.get_returns(asset, epoch)
-    db, rb = loader.get_returns(config.BENCHMARK, epoch)
+    db, rb = loader.get_returns(benchmark, epoch)
     common = da.intersection(db)
     ia = da.isin(common)
     ib = db.isin(common)
@@ -68,6 +70,8 @@ def analyze(req: schemas.AnalyzeRequest) -> schemas.AnalyzeResponse:
     if req.epoch not in config.EPOCHS:
         raise KeyError(f"Época desconocida: {req.epoch}")
 
+    benchmark = config.benchmark_for(req.asset)
+
     prices = loader.get_prices(req.asset, req.epoch)
     dates, returns = loader.get_returns(req.asset, req.epoch)
     r = preprocessing.remove_dc(returns)
@@ -97,13 +101,13 @@ def analyze(req: schemas.AnalyzeRequest) -> schemas.AnalyzeResponse:
     max_lag = min(120, n - 1)
     acf = autocorr.autocorrelation(r, max_lag=max_lag)
 
-    # --- Coherencia vs SPY ---
-    if req.asset == config.BENCHMARK:
+    # --- Coherencia vs el benchmark del mercado ---
+    if req.asset == benchmark:
         coh_freqs = freqs
         coh = np.ones_like(freqs)
         coh_at_dom = 1.0
     else:
-        ra, rb = _aligned_returns(req.asset, req.epoch)
+        ra, rb = _aligned_returns(req.asset, req.epoch, benchmark)
         ra = preprocessing.remove_dc(ra)
         rb = preprocessing.remove_dc(rb)
         # La coherencia EXIGE promediar varios segmentos: con un único segmento
@@ -121,6 +125,7 @@ def analyze(req: schemas.AnalyzeRequest) -> schemas.AnalyzeResponse:
     interpretation = interpret.build_interpretation(
         asset=req.asset,
         epoch=req.epoch,
+        benchmark=benchmark,
         regime=regime,
         period_days=dom["period_days"],
         confidence=dom["energy_ratio"],
@@ -169,6 +174,7 @@ def analyze(req: schemas.AnalyzeRequest) -> schemas.AnalyzeResponse:
             coherence_at_dom=coh_at_dom,
             n_samples=n,
             nperseg=nperseg,
+            benchmark=benchmark,
             interpretation=interpretation,
         ),
     )
@@ -185,7 +191,9 @@ def compare(req: schemas.CompareRequest) -> schemas.CompareResponse:
     elif req.mode == "epoch_assets":
         if req.epoch not in config.EPOCHS:
             raise KeyError("Se requiere 'epoch' válida para mode='epoch_assets'.")
-        combos = [(a, req.epoch) for a in config.asset_keys()]
+        if req.market not in config.MARKETS:
+            raise KeyError("Se requiere 'market' válido para mode='epoch_assets'.")
+        combos = [(a.ticker, req.epoch) for a in config.assets_of_market(req.market)]
     else:
         raise ValueError("mode debe ser 'asset_epochs' o 'epoch_assets'.")
 

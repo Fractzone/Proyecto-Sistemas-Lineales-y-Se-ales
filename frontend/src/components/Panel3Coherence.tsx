@@ -5,7 +5,8 @@ import type { AnalyzeResponse } from "../types";
 export default function Panel3Coherence({ data }: { data: AnalyzeResponse }) {
   const r = data.relation;
   const fDom = data.summary.f_dom;
-  const isBenchmark = data.asset === "SPY";
+  const bench = data.summary.benchmark;
+  const isBenchmark = data.asset === bench;
 
   return (
     <section className="panel">
@@ -18,7 +19,7 @@ export default function Panel3Coherence({ data }: { data: AnalyzeResponse }) {
             y: r.coherence,
             type: "scatter",
             mode: "lines",
-            name: "Coherencia vs SPY",
+            name: `Coherencia vs ${bench}`,
             line: { color: theme.accent2, width: 1.4 },
             fill: "tozeroy",
             fillcolor: "rgba(167,139,250,0.12)",
@@ -35,8 +36,8 @@ export default function Panel3Coherence({ data }: { data: AnalyzeResponse }) {
         layout={{
           title: {
             text: isBenchmark
-              ? "Coherencia (SPY es el benchmark → ≡ 1)"
-              : "Coherencia espectral vs SPY",
+              ? `Coherencia (${bench} es el benchmark → ≡ 1)`
+              : `Coherencia espectral vs ${bench}`,
             font: { size: 12 },
           },
           xaxis: { title: "frecuencia (ciclos/día)" },

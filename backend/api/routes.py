@@ -11,11 +11,33 @@ from . import analysis, schemas
 router = APIRouter()
 
 
+def _asset_info(a: config.Asset) -> schemas.AssetInfo:
+    return schemas.AssetInfo(
+        ticker=a.ticker,
+        name=a.name,
+        role=a.role,
+        kind=a.kind,
+        market=config.market_of(a.ticker),
+    )
+
+
 @router.get("/assets", response_model=list[schemas.AssetInfo])
 def get_assets() -> list[schemas.AssetInfo]:
+    return [_asset_info(a) for a in config.ASSETS.values()]
+
+
+@router.get("/markets", response_model=list[schemas.MarketInfo])
+def get_markets() -> list[schemas.MarketInfo]:
     return [
-        schemas.AssetInfo(ticker=a.ticker, name=a.name, role=a.role)
-        for a in config.ASSETS.values()
+        schemas.MarketInfo(
+            code=m.code,
+            name=m.name,
+            lat=m.lat,
+            lon=m.lon,
+            benchmark=m.benchmark,
+            assets=[_asset_info(a) for a in m.assets],
+        )
+        for m in config.MARKETS.values()
     ]
 
 
