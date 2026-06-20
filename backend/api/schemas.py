@@ -38,6 +38,29 @@ class AnalyzeRequest(BaseModel):
     eps_high: float = Field(0.65, ge=0.0, le=1.0)
 
 
+class LiveAnalyzeRequest(BaseModel):
+    """Análisis en vivo (intradía) de una acción de EE.UU. Sin época: usa las
+    barras recientes (1 min, últimos días) descargadas en el momento."""
+
+    asset: str = Field(..., description="Ticker US del catálogo en vivo (p. ej. AAPL)")
+    N: int = Field(1024, ge=64, le=4096, description="Resolución espectral (nperseg)")
+    window: str = Field("hanning", description="hanning | hamming | blackman")
+    eps_low: float = Field(0.45, ge=0.0, le=1.0)
+    eps_high: float = Field(0.65, ge=0.0, le=1.0)
+
+
+class Units(BaseModel):
+    """Etiquetas de unidad para los ejes/textos según la modalidad de análisis.
+
+    Estático (diario): ciclos/día y días. En vivo (intradía 1 min): ciclos/min y
+    minutos. No altera ninguna fórmula del motor DSP (que trabaja en ciclos/muestra).
+    """
+
+    freq: str = "ciclos/día"
+    period: str = "días"
+    time: str = "días"
+
+
 class TimeSeries(BaseModel):
     dates: list[str]
     price: list[float]
@@ -90,6 +113,9 @@ class AnalyzeResponse(BaseModel):
     spectral: Spectral
     relation: Relation
     summary: Summary
+    units: Units = Field(default_factory=Units)
+    # Marca temporal del dato más reciente (ISO). Solo se usa en modo en vivo.
+    last_updated: str | None = None
 
 
 class CompareRequest(BaseModel):

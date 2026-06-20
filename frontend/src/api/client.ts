@@ -4,6 +4,7 @@ import type {
   AssetInfo,
   CompareResponse,
   EpochInfo,
+  LiveAnalyzeRequest,
   MarketInfo,
 } from "../types";
 
@@ -48,4 +49,7 @@ export const api = {
     request<AnalyzeResponse>("/analyze", { method: "POST", body: JSON.stringify(req) }),
   compare: (req: CompareRequest) =>
     request<CompareResponse>("/compare", { method: "POST", body: JSON.stringify(req) }),
+  getLiveAssets: () => request<AssetInfo[]>("/live/assets"),
+  analyzeLive: (req: LiveAnalyzeRequest) =>
+    request<AnalyzeResponse>("/live/analyze", { method: "POST", body: JSON.stringify(req) }),
 };

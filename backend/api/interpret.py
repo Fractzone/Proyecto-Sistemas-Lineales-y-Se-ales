@@ -7,7 +7,6 @@ recomendación de inversión ni una predicción.
 
 from __future__ import annotations
 
-from data import config
 from spectra_dsp import entropy
 
 _REGIME_DESC = {
@@ -36,17 +35,17 @@ def _confidence_word(conf: float) -> str:
 
 def build_interpretation(
     asset: str,
-    epoch: str,
+    asset_name: str,
+    epoch_label: str,
     benchmark: str,
     regime: str,
-    period_days: float,
+    period_value: float,
+    period_unit: str,
     confidence: float,
     volatility: float,
     coherence_at_dom: float,
     se_norm: float,
 ) -> str:
-    asset_info = config.ASSETS[asset]
-    epoch_info = config.EPOCHS[epoch]
     regime_desc = _REGIME_DESC.get(regime, "")
     conf_word = _confidence_word(confidence)
 
@@ -77,9 +76,9 @@ def build_interpretation(
         )
 
     return (
-        f"Durante la época «{epoch_info.label}», {asset} ({asset_info.name}) mostró un "
+        f"Durante {epoch_label}, {asset} ({asset_name}) mostró un "
         f"régimen {regime.lower()}: {regime_desc}. El análisis de Welch identifica un "
-        f"ciclo dominante de aproximadamente {period_days:.1f} días de trading, con un "
+        f"ciclo dominante de aproximadamente {period_value:.1f} {period_unit}, con un "
         f"pico espectral {conf_word} (energía relativa {confidence:.1%}) y una "
         f"volatilidad de retornos de {volatility:.4f}. {coh_sentence} "
         f"La entropía espectral normalizada fue {se_norm:.2f}. "

@@ -14,12 +14,13 @@ function Metric({ label, value, unit }: { label: string; value: string; unit?: s
 
 export default function Panel4Summary({ data }: { data: AnalyzeResponse }) {
   const s = data.summary;
+  const periodUnit = data.units?.period ?? "días";
   return (
     <section className="panel panel-summary">
       <h2>4 · Resumen e interpretación</h2>
       <div className="metrics-grid">
         <Metric label="Régimen" value={s.regime} />
-        <Metric label="Ciclo dominante" value={s.period_days.toFixed(1)} unit="días" />
+        <Metric label="Ciclo dominante" value={s.period_days.toFixed(1)} unit={periodUnit} />
         <Metric label="Fase" value={s.phase_pct.toFixed(0)} unit="%" />
         <Metric label="Confianza (E_dom/E_tot)" value={(s.confidence * 100).toFixed(1)} unit="%" />
         <Metric label="Volatilidad" value={s.volatility.toFixed(4)} />

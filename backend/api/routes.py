@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 
-from data import config
+from data import config, live_config
 
 from . import analysis, schemas
 
@@ -66,4 +66,29 @@ def post_compare(req: schemas.CompareRequest) -> schemas.CompareResponse:
     except (KeyError, ValueError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@router.get("/live/assets", response_model=list[schemas.AssetInfo])
+def get_live_assets() -> list[schemas.AssetInfo]:
+    """Catálogo curado de acciones US para el modo en vivo (SPY = benchmark)."""
+    return [
+        schemas.AssetInfo(
+            ticker=a.ticker,
+            name=a.name,
+            role=a.role,
+            kind=a.kind,
+            market="US",
+        )
+        for a in live_config.LIVE_ASSETS.values()
+    ]
+
+
+@router.post("/live/analyze", response_model=schemas.AnalyzeResponse)
+def post_live_analyze(req: schemas.LiveAnalyzeRequest) -> schemas.AnalyzeResponse:
+    try:
+        return analysis.analyze_live(req)
+    except (KeyError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:  # error de datos (descarga en vivo)
         raise HTTPException(status_code=503, detail=str(exc)) from exc

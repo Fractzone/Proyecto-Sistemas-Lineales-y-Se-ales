@@ -8,11 +8,14 @@ import ComparisonView from "./components/ComparisonView";
 import WorldGlobe from "./components/WorldGlobe";
 import LoadingOverlay from "./components/LoadingOverlay";
 import ErrorBanner from "./components/ErrorBanner";
+import ModeToggle from "./components/ModeToggle";
+import LiveView from "./components/LiveView";
 import { api } from "./api/client";
 import { useAnalysis } from "./hooks/useAnalysis";
-import type { CompareMode, EpochInfo, MarketInfo } from "./types";
+import type { AnalysisMode, CompareMode, EpochInfo, MarketInfo } from "./types";
 
 export default function App() {
+  const [mode, setMode] = useState<AnalysisMode>("static");
   const [markets, setMarkets] = useState<MarketInfo[]>([]);
   const [epochs, setEpochs] = useState<EpochInfo[]>([]);
   const [metaError, setMetaError] = useState<string | null>(null);
@@ -67,70 +70,87 @@ export default function App() {
             <p>Análisis espectral de activos · Sistemas Lineales y Señales</p>
           </div>
         </div>
-        {activeAsset && (
+        <ModeToggle mode={mode} onMode={setMode} />
+        {mode === "static" ? (
+          activeAsset && (
+            <div className="context-chip">
+              {currentMarket && <strong>{currentMarket.name}</strong>}{" "}
+              <strong>{activeAsset.ticker}</strong> · {activeAsset.role}
+            </div>
+          )
+        ) : (
           <div className="context-chip">
-            {currentMarket && <strong>{currentMarket.name}</strong>}{" "}
-            <strong>{activeAsset.ticker}</strong> · {activeAsset.role}
+            <strong>Bolsa de EE.UU.</strong> · datos intradía (1 min, casi-tiempo-real)
           </div>
         )}
       </header>
 
       {metaError && <ErrorBanner message={metaError} />}
 
-      <Controls
-        assets={assets}
-        epochs={epochs}
-        asset={asset}
-        epoch={epoch}
-        N={N}
-        window={windowName}
-        epsLow={epsLow}
-        epsHigh={epsHigh}
-        compareMode={compareMode}
-        onAsset={setAsset}
-        onEpoch={setEpoch}
-        onN={setN}
-        onWindow={setWindowName}
-        onEpsLow={setEpsLow}
-        onEpsHigh={setEpsHigh}
-        onCompareMode={setCompareMode}
-      />
-
-      {compareMode ? (
-        <ComparisonView
-          mode={compareMode}
-          asset={asset}
-          epoch={epoch}
-          market={market}
-          N={N}
-          window={windowName}
-          epsLow={epsLow}
-          epsHigh={epsHigh}
-        />
+      {mode === "live" ? (
+        <LiveView />
       ) : (
-        <main className="dashboard">
-          {error && <ErrorBanner message={error} />}
-          {loading && <LoadingOverlay />}
-          {data && !error && (
-            <div className="grid">
-              <Panel1Time data={data} />
-              <Panel2Spectral data={data} epsLow={epsLow} epsHigh={epsHigh} />
-              <Panel3Coherence data={data} />
-              <WorldGlobe markets={markets} selected={market} onSelect={selectMarket} />
-              <Panel4Summary data={data} />
-            </div>
+        <>
+          <Controls
+            assets={assets}
+            epochs={epochs}
+            asset={asset}
+            epoch={epoch}
+            N={N}
+            window={windowName}
+            epsLow={epsLow}
+            epsHigh={epsHigh}
+            compareMode={compareMode}
+            onAsset={setAsset}
+            onEpoch={setEpoch}
+            onN={setN}
+            onWindow={setWindowName}
+            onEpsLow={setEpsLow}
+            onEpsHigh={setEpsHigh}
+            onCompareMode={setCompareMode}
+          />
+
+          {compareMode ? (
+            <ComparisonView
+              mode={compareMode}
+              asset={asset}
+              epoch={epoch}
+              market={market}
+              N={N}
+              window={windowName}
+              epsLow={epsLow}
+              epsHigh={epsHigh}
+            />
+          ) : (
+            <main className="dashboard">
+              {error && <ErrorBanner message={error} />}
+              {loading && <LoadingOverlay />}
+              {data && !error && (
+                <div className="grid">
+                  <Panel1Time data={data} />
+                  <Panel2Spectral data={data} epsLow={epsLow} epsHigh={epsHigh} />
+                  <Panel3Coherence data={data} />
+                  <WorldGlobe markets={markets} selected={market} onSelect={selectMarket} />
+                  <Panel4Summary data={data} />
+                </div>
+              )}
+            </main>
           )}
-        </main>
+        </>
       )}
 
       <footer className="app-footer">
-        {activeEpoch && (
+        {mode === "static" && activeEpoch && (
           <span>
             Época «{activeEpoch.label}»: {activeEpoch.start} → {activeEpoch.end}
           </span>
         )}
+        {mode === "live" && (
+          <span>Modo en vivo · bolsa de EE.UU. · barras de 1 min vía yfinance (retardo ~15 min)</span>
+        )}
         <span>
-          Estudio académico retrospectivo — sin recomendación de inversión ni predicción.
+          Estudio académico {mode === "static" ? "retrospectivo" : "descriptivo"} — sin
+          recomendación de inversión ni predicción.
         </span>
       </footer>
     </div>

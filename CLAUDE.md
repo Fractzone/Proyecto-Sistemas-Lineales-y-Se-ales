@@ -28,6 +28,37 @@ Las 5 fases del plan están terminadas:
 El plan aprobado original está en
 `C:\Users\diego\.claude\plans\quiero-que-en-el-async-duckling.md`.
 
+## Modos de análisis: estático y EN VIVO
+
+La app tiene un **toggle en el header** (`ModeToggle`) con dos modalidades:
+
+- **Análisis estático** (original): estudio retrospectivo por épocas de pandemia
+  (2018–2023), datos diarios cacheados, mapa-globo para elegir país/activo.
+- **Análisis en vivo** (añadido): acción de la **bolsa de EE.UU.** en
+  casi-tiempo-real. Barras de **1 min de los últimos ~7 días** vía yfinance
+  (`interval="1m"`, `period="7d"`), benchmark de coherencia = **SPY**. Auto-refresco
+  por **polling cada 60 s** + botón manual. El globo se sustituye por
+  `StockSelectorPanel` (catálogo curado US). "Tiempo real" = casi-real con retardo
+  ~15 min (yfinance no da stream de ticks).
+
+**Reutilización clave**: el motor DSP es agnóstico de la fuente. El núcleo
+`api/analysis.py::compute_analysis(...)` (extraído del antiguo `analyze`) lo
+comparten ambos modos; solo cambian `fs`/`units`/`date_fmt`. **No se escribió DSP
+nuevo** → la regla inviolable se respeta. Internamente `fs=1.0` (ciclos/muestra)
+en ambos; en vivo las *etiquetas* pasan a ciclos/min y minutos (`schemas.Units`).
+
+Piezas en vivo:
+- Backend: `data/live_config.py` (catálogo + unidades), `data/live_loader.py`
+  (descarga intradía con caché TTL ~55 s), `analyze_live()` y endpoints
+  `GET /live/assets` + `POST /live/analyze`. Tests en `tests/test_live.py`
+  (barras sintéticas inyectadas en el caché TTL; sin red).
+- Frontend: `ModeToggle`, `LiveView`, `StockSelectorPanel`, `LiveControls`,
+  hook `useLiveAnalysis` (polling). Los 4 paneles se reusan tal cual; sus ejes
+  leen `data.units` con fallback diario.
+
+Verificado: 49/49 tests verdes, `npm run build` OK, y `analyze_live('AAPL')` con
+datos reales (2729 barras, coherencia vs SPY ≈ 0.48).
+
 ## REGLA INVIOLABLE del proyecto
 
 > En **producción** la única primitiva externa de DSP permitida es

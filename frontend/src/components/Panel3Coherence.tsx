@@ -7,6 +7,8 @@ export default function Panel3Coherence({ data }: { data: AnalyzeResponse }) {
   const fDom = data.summary.f_dom;
   const bench = data.summary.benchmark;
   const isBenchmark = data.asset === bench;
+  const freqUnit = data.units?.freq ?? "ciclos/día";
+  const lagUnit = data.units?.time ?? "días";
 
   return (
     <section className="panel">
@@ -40,7 +42,7 @@ export default function Panel3Coherence({ data }: { data: AnalyzeResponse }) {
               : `Coherencia espectral vs ${bench}`,
             font: { size: 12 },
           },
-          xaxis: { title: "frecuencia (ciclos/día)" },
+          xaxis: { title: `frecuencia (${freqUnit})` },
           yaxis: { title: "coherencia", range: [0, 1.02] },
         }}
       />
@@ -57,7 +59,7 @@ export default function Panel3Coherence({ data }: { data: AnalyzeResponse }) {
         ]}
         layout={{
           title: { text: "Autocorrelación R_xx[m]", font: { size: 12 } },
-          xaxis: { title: "retardo (días)" },
+          xaxis: { title: `retardo (${lagUnit})` },
           yaxis: { title: "R_xx" },
         }}
       />

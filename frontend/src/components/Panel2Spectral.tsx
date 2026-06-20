@@ -12,6 +12,8 @@ interface Props {
 export default function Panel2Spectral({ data, epsLow, epsHigh }: Props) {
   const s = data.spectral;
   const fDom = data.summary.f_dom;
+  const freqUnit = data.units?.freq ?? "ciclos/día";
+  const timeUnit = data.units?.time ?? "días";
 
   // Para log-log se omiten frecuencias/potencias no positivas.
   const fx: number[] = [];
@@ -49,7 +51,7 @@ export default function Panel2Spectral({ data, epsLow, epsHigh }: Props) {
         ]}
         layout={{
           title: { text: "Densidad espectral de potencia (log-log)", font: { size: 12 } },
-          xaxis: { type: "log", title: "frecuencia (ciclos/día)" },
+          xaxis: { type: "log", title: `frecuencia (${freqUnit})` },
           yaxis: { type: "log", title: "PSD" },
         }}
       />
@@ -67,7 +69,7 @@ export default function Panel2Spectral({ data, epsLow, epsHigh }: Props) {
         ]}
         layout={{
           title: { text: "Espectrograma STFT", font: { size: 12 } },
-          xaxis: { title: "tiempo (días)" },
+          xaxis: { title: `tiempo (${timeUnit})` },
           yaxis: { title: "frecuencia" },
         }}
       />

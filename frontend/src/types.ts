@@ -67,6 +67,12 @@ export interface Summary {
   interpretation: string;
 }
 
+export interface Units {
+  freq: string; // p. ej. "ciclos/día" (estático) | "ciclos/min" (en vivo)
+  period: string; // "días" | "min"
+  time: string; // "días" | "minutos"
+}
+
 export interface AnalyzeResponse {
   asset: string;
   epoch: string;
@@ -75,6 +81,8 @@ export interface AnalyzeResponse {
   spectral: Spectral;
   relation: Relation;
   summary: Summary;
+  units: Units;
+  last_updated: string | null;
 }
 
 export interface AnalyzeRequest {
@@ -85,6 +93,16 @@ export interface AnalyzeRequest {
   eps_low: number;
   eps_high: number;
 }
+
+export interface LiveAnalyzeRequest {
+  asset: string;
+  N: number;
+  window: string;
+  eps_low: number;
+  eps_high: number;
+}
+
+export type AnalysisMode = "static" | "live";
 
 export interface CompareRow {
   asset: string;
