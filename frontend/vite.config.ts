@@ -9,9 +9,25 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "http://localhost:8000",
+        target: "http://127.0.0.1:8000",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ""),
+      },
+      "/markets": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+      },
+      "/epochs": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+      },
+      "/analyze": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+      },
+      "/assets": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
       },
     },
   },

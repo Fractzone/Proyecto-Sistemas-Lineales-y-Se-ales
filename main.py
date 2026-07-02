@@ -36,7 +36,7 @@ RAW_DIR = BACKEND / "data" / "raw"
 
 BACKEND_PORT = 8000
 FRONTEND_PORT = 5173
-BACKEND_URL = f"http://localhost:{BACKEND_PORT}/assets"
+BACKEND_URL = f"http://127.0.0.1:{BACKEND_PORT}/assets"
 FRONTEND_URL = f"http://localhost:{FRONTEND_PORT}"
 
 IS_WINDOWS = platform.system() == "Windows"
@@ -279,7 +279,7 @@ def launch() -> None:
     try:
         info(f"Backend  → http://localhost:{BACKEND_PORT}  (docs en /docs)")
         backend_proc = _popen(
-            [py, "-m", "uvicorn", "api.main:app", "--port", str(BACKEND_PORT)],
+            [py, "-m", "uvicorn", "api.main:app", "--host", "127.0.0.1", "--port", str(BACKEND_PORT)],
             BACKEND,
         )
 
